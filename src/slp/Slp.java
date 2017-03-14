@@ -1,156 +1,126 @@
 package slp;
 
-import java.util.LinkedList;
 
-public class Slp
-{
-  // ////////////////////////////////////////////////
-  // expression
-  public static class Exp
-  {
-    // base class
-    public static abstract class T
-    {
-    }
+class Slp {
+    // expression
+    static class Exp {
+        // base class
+        static abstract class T {
+        }
 
-    // id
-    public static class Id extends T
-    {
-      String id;
+        // id
+        static class Id extends T {
+            final String id;
 
-      public Id(String id)
-      {
-        this.id = id;
-      }
-    }
+            Id(String id) {
+                this.id = id;
+            }
+        }
 
-    // id
-    public static class Num extends T
-    {
-      int num;
+        // id
+        static class Num extends T {
+            final int num;
 
-      public Num(int num)
-      {
-        this.num = num;
-      }
-    }
+            Num(int num) {
+                this.num = num;
+            }
+        }
 
-    // op
-    public enum OP_T
-    {
-      ADD, SUB, TIMES, DIVIDE
-    };
+        // op
+        public enum OP_T {
+            ADD, SUB, TIMES, DIVIDE
+        }
 
-    public static class Op extends T
-    {
-      OP_T op;
-      public T left;
-      public T right;
+        static class Op extends T {
+            final OP_T op;
+            final T left;
+            final T right;
 
-      public Op(OP_T op, T left, T right)
-      {
-        this.op = op;
-        this.left = left;
-        this.right = right;
-      }
-    }
+            Op(OP_T op, T left, T right) {
+                this.op = op;
+                this.left = left;
+                this.right = right;
+            }
+        }
 
-    // Eseq
-    public static class Eseq extends T
-    {
-      public Stm.T stm;
-      public T exp;
+        // Eseq
+        static class Eseq extends T {
+            final Stm.T stm;
+            final T exp;
 
-      public Eseq(Stm.T stm, T exp)
-      {
-        this.stm = stm;
-        this.exp = exp;
-      }
-    }
-  }// end of expression
+            Eseq(Stm.T stm, T exp) {
+                this.stm = stm;
+                this.exp = exp;
+            }
+        }
+    }// end of expression
 
-  // ////////////////////////////////////////////////
-  // explist
-  public static class ExpList
-  {
-    // base class
-    public static abstract class T
-    {
-    }
+    // explist
+    static class ExpList {
+        // base class
+        static abstract class T {
+        }
 
-    // pair
-    public static class Pair extends T
-    {
-      public Exp.T exp;
-      public ExpList.T list;
+        // pair
+        static class Pair extends T {
+            final Exp.T exp;
+            final ExpList.T list;
 
-      public Pair(Exp.T exp, T list)
-      {
-        super();
-        this.exp = exp;
-        this.list = list;
-      }
-    }
+            Pair(Exp.T exp, T list) {
+                super();
+                this.exp = exp;
+                this.list = list;
+            }
+        }
 
-    // last
-    public static class Last extends T
-    {
-      public Exp.T exp;
+        // last
+        static class Last extends T {
+            final Exp.T exp;
 
-      public Last(Exp.T exp)
-      {
-        super();
-        this.exp = exp;
-      }
-    }
-  }// end of explist
+            Last(Exp.T exp) {
+                super();
+                this.exp = exp;
+            }
+        }
+    }// end of explist
 
-  // ///////////////////////////////////////////////
-  // statement
-  public static class Stm
-  {
-    // base class
-    public static abstract class T
-    {
-    }
+    // statement
+    public static class Stm {
+        // base class
+        static abstract class T {
+        }
 
-    // Compound (s1, s2)
-    public static class Compound extends T
-    {
-      public T s1;
-      public T s2;
+        // Compound (s1, s2)
+        static class Compound extends T {
+            final T s1;
+            final T s2;
 
-      public Compound(T s1, T s2)
-      {
-        this.s1 = s1;
-        this.s2 = s2;
-      }
-    }
+            Compound(T s1, T s2) {
+                this.s1 = s1;
+                this.s2 = s2;
+            }
+        }
 
-    // x := e
-    public static class Assign extends T
-    {
-      public String id;
-      public Exp.T exp;
+        // x := e
+        static class Assign extends T {
+            final Exp.Id id;
+            final Exp.T exp;
 
-      public Assign(String id, Exp.T exp)
-      {
-        this.id = id;
-        this.exp = exp;
-      }
-    }
+            Assign(Exp.Id id, Exp.T exp) {
+                this.id = id;
+                this.exp = exp;
+            }
+        }
 
-    // print (explist)
-    public static class Print extends T
-    {
-      ExpList.T explist;
+        // print (explist)
+        public static class Print extends T {
+            final ExpList.T explist;
 
-      public Print(ExpList.T explist)
-      {
-        this.explist = explist;
-      }
-    }
+            public Print(ExpList.T explist) {
+                this.explist = explist;
+            }
+        }
 
-  }// end of statement
+    }// end of statement
 
 }

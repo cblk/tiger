@@ -14,8 +14,8 @@ import slp.Slp.Stm.Print;
 
 public class Samples
 {
-  public static Stm.T prog = new Compound(new Assign("a", new Op(Exp.OP_T.ADD,
-      new Num(3), new Num(5))), new Compound(new Assign("b", new Eseq(
+  public static Stm.T prog = new Compound(new Assign(new Id("a"), new Op(Exp.OP_T.ADD,
+      new Num(3), new Num(5))), new Compound(new Assign(new Id("b"), new Eseq(
       new Print(new Pair(new Id("a"), new Last(new Op(Exp.OP_T.SUB,
           new Id("a"), new Num(1))))), new Op(Exp.OP_T.TIMES, new Num(10),
           new Id("a")))), new Print(new Last(new Id("b")))));
