@@ -80,7 +80,11 @@ public class Main {
 
     private void interpStm(Stm.T prog) {
         if (prog instanceof Stm.Compound) {
-            new Todo();
+            Stm.Compound s = (Stm.Compound) prog;
+            Stm.T s1 = s.s1;
+            Stm.T s2 = s.s2;
+            interpStm(s1);
+            interpStm(s2);
         } else if (prog instanceof Stm.Assign) {
             new Todo();
         } else if (prog instanceof Stm.Print) {
@@ -201,7 +205,7 @@ public class Main {
 
             ids.add(id.id);
             compileExp(exp);
-            emit("\tmovl\t%eax, " + id + "\n");
+            emit("\tmovl\t%eax, " + id.id + "\n");
         } else if (prog instanceof Stm.Print) {
             Stm.Print s = (Stm.Print) prog;
             ExpList.T explist = s.explist;
@@ -255,10 +259,10 @@ public class Main {
                 writer.write(buf.toString());
                 writer.write("\tleave\n\tret\n\n");
                 writer.close();
-                Process child = Runtime.getRuntime().exec("gcc slp_gen.s");
+                Process child = Runtime.getRuntime().exec("cl slp_gen.s");
                 child.waitFor();
                 if (!Control.ConSlp.keepasm)
-                    Runtime.getRuntime().exec("rm -rf slp_gen.s");
+                    Runtime.getRuntime().exec("del slp_gen.s");
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(0);

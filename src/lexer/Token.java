@@ -53,7 +53,8 @@ public class Token
     TOKEN_TIMES, // "*"
     TOKEN_TRUE, // "true"
     TOKEN_VOID, // "void"
-    TOKEN_WHILE, // "while"
+    TOKEN_WHILE,  // "while"
+    TOKEN_UNKNOWN, //unknown
   }
 
   public Kind kind; // kind of the token

@@ -24,7 +24,6 @@ public class Tiger
     // the straight-line interpreter (and compiler)    
     switch (Control.ConSlp.action){
     case NONE:
-      System.exit(0);
       break;
     default:
       slp.Main slpmain = new slp.Main();
