@@ -56,7 +56,7 @@ public class Parser
     if (current.kind == Kind.TOKEN_RPAREN)
       return;
     parseExp();
-    while (current.kind == Kind.TOKEN_COMMER) {
+    while (current.kind == Kind.TOKEN_COMMA) {
       advance();
       parseExp();
     }
@@ -270,7 +270,7 @@ public class Parser
         || current.kind == Kind.TOKEN_ID) {
       parseType();
       eatToken(Kind.TOKEN_ID);
-      while (current.kind == Kind.TOKEN_COMMER) {
+      while (current.kind == Kind.TOKEN_COMMA) {
         advance();
         parseType();
         eatToken(Kind.TOKEN_ID);

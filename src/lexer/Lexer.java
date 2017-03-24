@@ -2,19 +2,18 @@ package lexer;
 
 import static control.Control.ConLexer.dump;
 
-import java.io.CharConversionException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 import lexer.Token.Kind;
-import util.Todo;
 
 public class Lexer {
-    private String fname; // the input file name to be compiled
-    private InputStream fstream; // input stream for the above file
+    private String fileName; // the input file name to be compiled
+    private InputStream fStream; // input stream for the above file
     private int lineNum;
+    private int colNum;
     private int nextChar;
     // hash tables for fast lookup
     private final static Map<String, Kind> reservedWords;
@@ -52,22 +51,25 @@ public class Lexer {
         punctuation.put('{', Kind.TOKEN_LBRACE);
         punctuation.put('}', Kind.TOKEN_RBRACE);
         punctuation.put(';', Kind.TOKEN_SEMI);
-        punctuation.put(',', Kind.TOKEN_COMMER);
+        punctuation.put(',', Kind.TOKEN_COMMA);
         punctuation.put('.', Kind.TOKEN_DOT);
         punctuation.put('=', Kind.TOKEN_ASSIGN);
         punctuation.put('!', Kind.TOKEN_NOT);
     }
 
-    public Lexer(String fname, InputStream fstream) {
-        this.fname = fname;
-        this.fstream = fstream;
+    public Lexer(String fName, InputStream fStream) {
+        this.fileName = fName;
+        this.fStream = fStream;
         lineNum = 1;
+        colNum = 0;
         nextChar = getChar();
     }
 
     private int getChar() {
         try {
-            return fstream.read();
+            int c = fStream.read();
+            colNum++;
+            return c;
         } catch (IOException e) {
             System.err.println("IOException occured in Lexer::getChar()");
             return -1;
@@ -75,22 +77,25 @@ public class Lexer {
     }
 
     // detect and skip possible '\n', '\r' and '\rn' line breaks
-    private void skipNewline() {
+    private boolean skipNewline() {
         if (nextChar == '\n') {
             lineNum++;
             nextChar = getChar();
-            return;
+            colNum = 1;
+            return true;
         }
-
         if (nextChar == '\r') {
             lineNum++;
             nextChar = getChar();
+            colNum = 1;
             // skip over next char if '\n'
-            if (nextChar == '\n')
+            if (nextChar == '\n') {
                 nextChar = getChar();
-            return;
+                colNum = 1;
+            }
+            return true;
         }
-        nextChar = getChar();
+        return false;
     }
 
     // When called, return the next token (refer to the code "Token.java")
@@ -98,14 +103,20 @@ public class Lexer {
     // Return TOKEN_EOF when reaching the end of the input stream.
     private Token nextTokenInternal() throws Exception {
         if (-1 == nextChar)
-            return new Token(Kind.TOKEN_EOF, lineNum);
+            return new Token(Kind.TOKEN_EOF, lineNum, colNum);
 
         // skip all kinds of "blanks"
         while (Character.isWhitespace(nextChar)) {
-            skipNewline();
+            // check if whitespace char is a newline
+            if (!skipNewline()) {
+                nextChar = getChar();
+            }
+            // offset colNum for tab chars
+            if (nextChar == '\t')
+                colNum += 3;
         }
         if (-1 == nextChar)
-            return new Token(Kind.TOKEN_EOF, lineNum);
+            return new Token(Kind.TOKEN_EOF, lineNum, colNum);
 
         // identifier or reserved word ([a-zA-Z][a-zA-Z0-9_]*)
         if (Character.isLetter(nextChar)) {
@@ -122,9 +133,9 @@ public class Lexer {
             // check if identifier is a reserved word
             Kind type = reservedWords.get(idVal);
             if (type != null)
-                return new Token(type, lineNum);
+                return new Token(type, lineNum, colNum - idVal.length());
             else // token is an identifier
-                return new Token(Kind.TOKEN_ID, lineNum, idVal);
+                return new Token(Kind.TOKEN_ID, lineNum, colNum - idVal.length(), idVal);
         }
 
         // integer literal ([0-9]+)
@@ -138,31 +149,31 @@ public class Lexer {
                 numString += (char) nextChar;
                 nextChar = getChar();
             }
-            return new Token(Kind.TOKEN_INT, lineNum, numString);
+            return new Token(Kind.TOKEN_INT, lineNum, colNum - numString.length(), numString);
         }
 
         // check for binOps
         switch (nextChar) {
             case '+':
                 nextChar = getChar();
-                return new Token(Kind.TOKEN_ADD, lineNum);
+                return new Token(Kind.TOKEN_ADD, lineNum, colNum - 1);
             case '-':
                 nextChar = getChar();
-                return new Token(Kind.TOKEN_SUB, lineNum);
+                return new Token(Kind.TOKEN_SUB, lineNum, colNum - 1);
             case '*':
                 nextChar = getChar();
-                return new Token(Kind.TOKEN_TIMES, lineNum);
+                return new Token(Kind.TOKEN_TIMES, lineNum, colNum - 1);
             case '<':
                 nextChar = getChar();
-                return new Token(Kind.TOKEN_LT, lineNum);
+                return new Token(Kind.TOKEN_LT, lineNum, colNum - 1);
             case '&':
                 nextChar = getChar();
                 // check if next char is '&' to match '&&' binop
                 if (nextChar == '&') {
                     nextChar = getChar();
-                    return new Token(Kind.TOKEN_AND, lineNum);
+                    return new Token(Kind.TOKEN_AND, lineNum, colNum - 2);
                 } else
-                    return new Token(Kind.TOKEN_UNKNOWN, lineNum);
+                    return new Token(Kind.TOKEN_UNKNOWN, lineNum, colNum - 1);
         }
 
         // check for punctuation
@@ -171,15 +182,14 @@ public class Lexer {
 
         // found punctuation token
         if (type != null)
-            return new Token(type, lineNum);
+            return new Token(type, lineNum, colNum - 1);
 
         // token type is unknown
-        return new Token(Kind.TOKEN_UNKNOWN, lineNum);
+        return new Token(Kind.TOKEN_UNKNOWN, lineNum, colNum - 1);
     }
 
     public Token nextToken() {
         Token t = null;
-
         try {
             t = this.nextTokenInternal();
         } catch (Exception e) {
@@ -190,6 +200,4 @@ public class Lexer {
             System.out.println(t.toString());
         return t;
     }
-
-
 }
