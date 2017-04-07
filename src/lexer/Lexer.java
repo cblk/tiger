@@ -15,6 +15,7 @@ public class Lexer {
     private int lineNum;
     private int colNum;
     private int nextChar;
+    private Token next;
     // hash tables for fast lookup
     private final static Map<String, Kind> reservedWords;
     private final static Map<Character, Kind> punctuation;
@@ -29,6 +30,7 @@ public class Lexer {
         reservedWords.put("false", Kind.TOKEN_FALSE);
         reservedWords.put("if", Kind.TOKEN_IF);
         reservedWords.put("int", Kind.TOKEN_INT);
+        reservedWords.put("length", Kind.TOKEN_LENGTH);
         reservedWords.put("main", Kind.TOKEN_MAIN);
         reservedWords.put("new", Kind.TOKEN_NEW);
         reservedWords.put("out", Kind.TOKEN_OUT);
@@ -98,10 +100,26 @@ public class Lexer {
         return false;
     }
 
+    // return the next token without "consuming" it
+    public Token peek() {
+        // advance token only if its been reset by nextTokenInternal()
+        if (next == null)
+            next = nextTokenInternal();
+
+        return next;
+    }
+
     // When called, return the next token (refer to the code "Token.java")
     // from the input stream.
     // Return TOKEN_EOF when reaching the end of the input stream.
-    private Token nextTokenInternal() throws Exception {
+    private Token nextTokenInternal() {
+        // check if peek() was called
+        if (next != null) {
+            Token token = next;
+            next = null; // allow peek to call for next token
+            return token;
+        }
+
         if (-1 == nextChar)
             return new Token(Kind.TOKEN_EOF, lineNum, colNum);
 
@@ -149,7 +167,70 @@ public class Lexer {
                 numString += (char) nextChar;
                 nextChar = getChar();
             }
-            return new Token(Kind.TOKEN_INT, lineNum, colNum - numString.length(), numString);
+            return new Token(Kind.TOKEN_NUM, lineNum, colNum - numString.length(), numString);
+        }
+
+        if (nextChar == '/') {
+            colNum++;
+            nextChar = getChar();
+
+            // single-line comment (skip to the next line)
+            if (nextChar == '/') {
+                do {
+                    colNum++;
+                    nextChar = getChar();
+                } while (!skipNewline() && nextChar != -1);
+
+                // grab next token
+                return nextTokenInternal();
+            }
+
+            // multi-line comment (skip input until matching '*/' is found)
+            if (nextChar == '*') {
+                colNum++;
+                nextChar = getChar();
+
+                // keep track of nesting level
+                int nestingLevel = 1;
+                while (nestingLevel > 0) {
+                    if (nextChar == '*') {
+                        // check if it closes a comment
+                        colNum++;
+                        nextChar = getChar();
+
+                        if (nextChar == '/') {
+                            nestingLevel--;
+                            colNum++;
+                            nextChar = getChar();
+                        }
+
+                    } else if (nextChar == '/') {
+                        // check if it starts a nested comment
+                        colNum++;
+                        nextChar = getChar();
+
+                        if (nextChar == '*') {
+                            nestingLevel++;
+                            colNum++;
+                            nextChar = getChar();
+                        }
+
+                    } else {
+                        // check if EOF is reached before comment is terminated
+                        if (nextChar == -1)
+                            break;
+
+                        // process newline chars
+                        if (!skipNewline()) {
+                            colNum++;
+                            nextChar = getChar();
+                        }
+
+                    }
+                }
+                // grab next token
+                return nextTokenInternal();
+            }
         }
 
         // check for binOps

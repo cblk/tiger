@@ -86,4 +86,16 @@ public class Token {
                 + this.lineNum.toString() + ";at column " + colNum.toString();
         return this.kind.toString() + s;
     }
+
+    public String getLexeme() {
+        return lexeme;
+    }
+
+    public Integer getLineNum() {
+        return lineNum;
+    }
+
+    public Integer getColNum() {
+        return colNum;
+    }
 }
